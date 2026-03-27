@@ -1,6 +1,7 @@
 #pragma once
 #include<iostream>
 #include<string>
+#include<variant>
 
 enum TokenType {
     // Single-character tokens.
@@ -25,9 +26,13 @@ enum TokenType {
 
 struct Token {
     TokenType type;
-    std::string lexeme;
+    std::string lexeme; // the exact text read from the source
     std::string literal;
-    
+    int line = 0;
+
+    Token(TokenType type, std::string lexeme, std::string literal, int line):
+        type(type), lexeme(std::move(lexeme)), literal(std::move(literal)), line(line) { }
+
     std::string toString() const {
         std::string typeStr;
 
@@ -74,4 +79,4 @@ struct Token {
         }
         return typeStr + " " + lexeme + " " + literal;
     }
-};
+}; 

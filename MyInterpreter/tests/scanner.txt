@@ -1,0 +1,23 @@
+// --- TEST 1: Punctuation ---
+(){};,+-*! != = == > >= < <= /
+
+// --- TEST 2: Strings & Lines ---
+"Normal string"
+
+// --- TEST 3: Numbers ---
+123
+123.456
+.456
+123.
+
+// --- TEST 4: Keywords & Identifiers ---
+and class if
+andy classy iffy
+
+// --- TEST 5: Unexpected Characters ---
+var a = 5;
+@
+var b = 10;
+
+// --- TEST 6: The Unterminated String ---
+"This string has no end quote

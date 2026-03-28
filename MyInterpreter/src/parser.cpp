@@ -43,6 +43,30 @@ ParseError Parser::error(Token token, const std::string& message) {
     return ParseError(errstr);
 }
 
+// for error recovery
+void Parser::synchronize() {
+    advance(); // Consume the token that triggered the panic
+
+    while (!isAtEnd()) {
+        if (previous().type == SEMICOLON) return;
+
+        switch (peek().type) {
+        case CLASS:
+        case FUN:
+        case VAR:
+        case FOR:
+        case IF:
+        case WHILE:
+        case PRINT:
+        case RETURN:
+            return;
+        default:
+            break;
+        }
+
+        advance();
+    }
+}
 std::unique_ptr<Expr> Parser::expression() {
     return equality(); 
 }

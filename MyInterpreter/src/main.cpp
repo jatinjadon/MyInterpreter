@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "parser.cpp"
 
 std::string read_file_contents(const std::string& filename) {
     std::ifstream file(filename);
@@ -46,6 +47,17 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    else if(command == "parse"){
+        Parser parser(tokens);
+        std::unique_ptr<Expr> expr = parser.parse();
+        if(expr){
+            std::cout << expr->print() << std::endl;
+        }
+        else{
+            std::cerr << "error" << std::endl;
+            return_code = 70;
+        }
+    }
     else {
         std::cerr << "Unknown command: " << command << std::endl;
         return 0;

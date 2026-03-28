@@ -1,123 +1,149 @@
-#include "expr.h"
-#include<vector>
+#include "parser.h"
 
-class Parser {
-private:
-	std::vector<Token> tokens;
-	int current = 0;
+Token Parser::peek() {
+    return tokens[current];
+}
 
-	Token peek() {
-		return tokens[current];
-	}
-	bool isAtEnd() {
-		return peek().type == _EOF;
-	}
-	Token previous() {
-		return tokens[current - 1];
-	}
-	Token advance() {
-		if (!isAtEnd())current++;
-		return previous();
-	}
-	bool check(TokenType type) {
-		return peek().type == type;
-	}
-	template <typename... Args> bool match(Args... types) {
-		if ((check(types) || ...)) {
-			advance();
-			return true;
-		}
-		return false;
-	}
+bool Parser::isAtEnd() {
+    return peek().type == _EOF;
+}
 
-	// CFG- Implementation
+Token Parser::previous() {
+    return tokens[current - 1];
+}
 
-	// expression -> equality
-	std::unique_ptr<Expr> expression() {
-		return equality(); 
-	}
+Token Parser::advance() {
+    if (!isAtEnd()) current++;
+    return previous();
+}
 
-	// equality -> comparison ( ( "!=" | "==" ) comparison )
-	std::unique_ptr<Expr> equality() {
-		std::unique_ptr<Expr> left = comparison();
+bool Parser::check(TokenType type) {
+    return peek().type == type;
+}
+template <typename... Args> 
+bool Parser::match(Args... types) {
+    if ((check(types) || ...)) {
+        advance();
+        return true;
+    }
+    return false;
+}
+Token Parser::consume(TokenType type, const std::string message) {
+    if(check(type)) return advance();
+    throw error(peek(), message);
+}
 
-		if(match(BANG_EQUAL, EQUAL_EQUAL)){
-			Token op = previous();
-			std::unique_ptr<Expr> right = comparison();
-			left = std::make_unique<Binary>(std::move(left), op, std::move(right));
-		}
-		return left;
-	}
+ParseError Parser::error(Token token, const std::string& message) {
+    std::string errstr;
+    if(token.type == _EOF)
+        errstr = "[line " + std::to_string(line) + "] Error at end: " + message;
+    else
+        errstr = "[line " + std::to_string(line) + "] Error at '" + token.lexeme + "': " + message;
+    
+    return ParseError(errstr);
+}
 
-	std::unique_ptr<Expr> comparison(){
-		std::unique_ptr<Expr> left = term();
+std::unique_ptr<Expr> Parser::expression() {
+    return equality(); 
+}
 
-		if(match(LESS, LESS_EQUAL, GREATER, GREATER_EQUAL)){
-			Token op = previous();
-			std::unique_ptr<Expr> right = term();
-			left = std::make_unique<Binary>(std::move(left), op, std::move(right));
-		}
-		return left;
-	}
+std::unique_ptr<Expr> Parser::equality() {
+    std::unique_ptr<Expr> left = comparison();
+    if(!left) {
+        throw error(peek(), "Expect expression.");
+    }
+    if(match(BANG_EQUAL, EQUAL_EQUAL)) {
+        Token op = previous();
+        std::unique_ptr<Expr> right = comparison();
+        if(!right) {
+            throw error(peek(), "Expect expression.");
+        }
+        left = std::make_unique<Binary>(std::move(left), op, std::move(right));
+    }
+    return left;
+}
 
-	std::unique_ptr<Expr> term() {
-		std::unique_ptr<Expr> left = factor();
+std::unique_ptr<Expr> Parser::comparison() {
+    std::unique_ptr<Expr> left = term();
+    if(!left) {
+        throw error(peek(), "Expect expression.");
+    }
+    if(match(LESS, LESS_EQUAL, GREATER, GREATER_EQUAL)) {
+        Token op = previous();
+        std::unique_ptr<Expr> right = term();
+        if(!right) {
+            throw error(peek(), "Expect expression.");
+        }
+        left = std::make_unique<Binary>(std::move(left), op, std::move(right));
+    }
+    return left;
+}
 
-		if(match(MINUS, PLUS)){
-			Token op = previous();
-			std::unique_ptr<Expr> right = factor();
-			left = std::make_unique<Binary>(std::move(left), op, std::move(right));
-		}
+std::unique_ptr<Expr> Parser::term() {
+    std::unique_ptr<Expr> left = factor();
+    if(!left) {
+        throw error(peek(), "Expect expression.");
+    }
+    if(match(MINUS, PLUS)) {
+        Token op = previous();
+        std::unique_ptr<Expr> right = factor();
+        if(!right) {
+            throw error(peek(), "Expect expression.");
+        }
+        left = std::make_unique<Binary>(std::move(left), op, std::move(right));
+    }
+    return left;
+}
 
-		return left;
-	}
+std::unique_ptr<Expr> Parser::factor() {
+    std::unique_ptr<Expr> left = unary();
+    if(!left) {
+        throw error(peek(), "Expect expression.");
+    }
+    if (match(SLASH, STAR)) {
+        Token op = previous();
+        std::unique_ptr<Expr> right = unary();
+        if(!right) {
+            throw error(peek(), "Expect expression.");
+        }
+        left = std::make_unique<Binary>(std::move(left), op, std::move(right));
+    }
+    return left;
+}
 
-	std::unique_ptr<Expr> factor() {
-		std::unique_ptr<Expr> left = unary();
-		if (match(SLASH, STAR)) {
-			Token op = previous();
-			std::unique_ptr<Expr> right = unary();
+std::unique_ptr<Expr> Parser::unary() {
+    if (match(BANG, MINUS)) {
+        Token op = previous();
+        std::unique_ptr<Expr> right = unary();
+        if(!right) {
+            throw error(peek(), "Expect expression.");
+        }
+        return std::make_unique<Unary>(op, move(right));
+    }
+    return primary();
+}
 
-			left = std::make_unique<Binary>(std::move(left), op, std::move(right));
-		}
-		return left;
-	}
-	
-	std::unique_ptr<Expr> unary() {
-		if (match(BANG, MINUS)) {
-			Token op = previous();
-			std::unique_ptr<Expr> right = unary();
-			return std::make_unique<Unary>(op, move(right));
-		}
+std::unique_ptr<Expr> Parser::primary() {
+    if (match(TRUE, FALSE, NIL)) return std::make_unique<Literal>(previous().lexeme);
+    if (match(NUMBER, STRING)) return std::make_unique<Literal>(previous().literal);
 
-		return primary();
-	}
-	
-	std::unique_ptr<Expr> primary() {
-		if (match(TRUE, FALSE, NIL))return std::make_unique<Literal>(previous().lexeme);
-		if (match(NUMBER, STRING))return std::make_unique<Literal>(previous().literal);
+    if (match(LEFT_PAREN)) {
+        std::unique_ptr<Expr> expr = expression();
+        consume(RIGHT_PAREN, "Expect ')' after expression.");
+        return std::make_unique<Grouping>(move(expr));  
+    }
 
-		if (match(LEFT_PAREN)) {
-			std::unique_ptr<Expr> expr = expression();
-			// We must find RIGHT_PAREN here, else we should report compile error
-			if (match(RIGHT_PAREN)) {
-				return std::make_unique<Grouping>(move(expr));
-			}
-			return nullptr;
-		}
+    throw error(peek(), "Expect expression.");
+}
 
-		return nullptr;
-	}
-public:
-	Parser(std::vector<Token> tokens) :
-		tokens(std::move(tokens)) {}
+Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}
 
-	std::unique_ptr<Expr> parse() {
-		try {
-			return expression();
-		}
-		catch (std::runtime_error& error) {
-			return nullptr;
-		}
-	}
-};
+std::unique_ptr<Expr> Parser::parse() {
+    try {
+        return expression();
+    }
+    catch (std::runtime_error& error) {
+        std::cout << error.what() << std::endl;
+        return nullptr;
+    }
+}

@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "parser.cpp"
+#include "parser.h"
 
 std::string read_file_contents(const std::string& filename) {
     std::ifstream file(filename);

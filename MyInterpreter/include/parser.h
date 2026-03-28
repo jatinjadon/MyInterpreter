@@ -20,6 +20,7 @@ private:
     template <typename... Args> bool match(Args... types) ;
     Token consume(TokenType type, const std::string message);
     ParseError error(Token token, const std::string& message);
+    void synchronize();
 
     std::unique_ptr<Expr> expression();
     std::unique_ptr<Expr> equality();

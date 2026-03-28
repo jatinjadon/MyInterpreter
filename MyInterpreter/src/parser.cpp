@@ -52,7 +52,7 @@ std::unique_ptr<Expr> Parser::equality() {
     if(!left) {
         throw error(peek(), "Expect expression.");
     }
-    if(match(BANG_EQUAL, EQUAL_EQUAL)) {
+    while(match(BANG_EQUAL, EQUAL_EQUAL)) {
         Token op = previous();
         std::unique_ptr<Expr> right = comparison();
         if(!right) {
@@ -68,7 +68,7 @@ std::unique_ptr<Expr> Parser::comparison() {
     if(!left) {
         throw error(peek(), "Expect expression.");
     }
-    if(match(LESS, LESS_EQUAL, GREATER, GREATER_EQUAL)) {
+    while(match(LESS, LESS_EQUAL, GREATER, GREATER_EQUAL)) {
         Token op = previous();
         std::unique_ptr<Expr> right = term();
         if(!right) {
@@ -84,7 +84,7 @@ std::unique_ptr<Expr> Parser::term() {
     if(!left) {
         throw error(peek(), "Expect expression.");
     }
-    if(match(MINUS, PLUS)) {
+    while(match(MINUS, PLUS)) {
         Token op = previous();
         std::unique_ptr<Expr> right = factor();
         if(!right) {
@@ -100,7 +100,7 @@ std::unique_ptr<Expr> Parser::factor() {
     if(!left) {
         throw error(peek(), "Expect expression.");
     }
-    if (match(SLASH, STAR)) {
+    while (match(SLASH, STAR)) {
         Token op = previous();
         std::unique_ptr<Expr> right = unary();
         if(!right) {
@@ -112,7 +112,7 @@ std::unique_ptr<Expr> Parser::factor() {
 }
 
 std::unique_ptr<Expr> Parser::unary() {
-    if (match(BANG, MINUS)) {
+    while (match(BANG, MINUS)) {
         Token op = previous();
         std::unique_ptr<Expr> right = unary();
         if(!right) {

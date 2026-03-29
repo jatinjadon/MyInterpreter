@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "Parser.h"
 
 Token Parser::peek() {
     return tokens[current];
@@ -148,8 +148,20 @@ std::unique_ptr<Expr> Parser::unary() {
 }
 
 std::unique_ptr<Expr> Parser::primary() {
-    if (match(TRUE, FALSE, NIL)) return std::make_unique<Literal>(previous().lexeme);
-    if (match(NUMBER, STRING)) return std::make_unique<Literal>(previous().literal);
+    if(match(FALSE)){
+        return std::make_unique<Literal>(false);
+    }
+    if(match(TRUE)){
+        return std::make_unique<Literal>(true);
+    }
+    if(match(NIL)){
+        return std::make_unique<Literal>(nullptr);
+    }
+    if(match(NUMBER)){
+        double num = std::stod(previous().lexeme);
+        return std::make_unique<Literal>(num);
+    }
+    if (match(STRING)) return std::make_unique<Literal>(previous().literal);
 
     if (match(LEFT_PAREN)) {
         std::unique_ptr<Expr> expr = expression();

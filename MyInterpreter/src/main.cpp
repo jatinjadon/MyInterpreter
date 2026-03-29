@@ -5,7 +5,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "parser.h"
+#include "Parser.h"
+#include "Interpreter.h"
 
 std::string read_file_contents(const std::string& filename) {
     std::ifstream file(filename);
@@ -56,6 +57,17 @@ int main(int argc, char* argv[]) {
         else{
             std::cerr << "error" << std::endl;
             return_code = 70;
+        }
+    }
+    else if (command == "evaluate") {
+        Parser parser(tokens);
+        std::unique_ptr<Expr> expr = parser.parse();
+        if (expr) {
+            Interpreter interpreter;
+            interpreter.interpret(expr.get());
+        }
+        else {
+            return_code = 65;
         }
     }
     else {

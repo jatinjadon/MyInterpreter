@@ -1,4 +1,6 @@
+#pragma once
 #include "expr.h"
+#include "Token.h"
 #include<vector>
 
 class ParseError : public std::runtime_error{

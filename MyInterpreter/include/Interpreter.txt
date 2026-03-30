@@ -11,3 +11,5 @@ print a;
     }
     print hello;
 }
+
+print false or 2 and 3;

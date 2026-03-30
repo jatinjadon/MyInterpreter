@@ -20,7 +20,7 @@ void Environment::assign(const Token &name, LoxValue& value){
         return;
     }
     if(enclosing != nullptr){
-        enclosing->assign(name, value);
-    }
+        enclosing->assign(name, value);}
+    
     throw std::runtime_error("Undefined variable: '" + name.lexeme + "'.");   
 }

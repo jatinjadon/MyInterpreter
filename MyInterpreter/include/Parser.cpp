@@ -72,19 +72,42 @@ std::unique_ptr<Expr> Parser::expression() {
     return assignment(); 
 }
 std::unique_ptr<Expr> Parser::assignment(){
-    std::unique_ptr<Expr> left = equality();
+    std::unique_ptr<Expr> left = logicalOr();
 
     if(match(EQUAL)){
         Token equals = previous();
 
-        std::unique_ptr<Expr> expr = expression();
+        // need to call assignment (eg. a = b = 5)
+        std::unique_ptr<Expr> expr = assignment();
 
-        // left side should be a Variable, else it would be invalide assignment(eg. 5+2 = 10;)
+        // left side should be a Variable, else it would be invalid assignment(eg. 5+2 = 10;)
         if(Variable* v = dynamic_cast<Variable*>(left.get())){
             Token name = v->name;
             return std::make_unique<Assign>(std::move(name), std::move(expr));
         }
-        error(equals, "Tried to do Invalid assignment.");
+        error(equals, "User Tried to do Invalid assignment.");
+    }
+    return left;
+}
+std::unique_ptr<Expr> Parser::logicalOr(){
+    std::unique_ptr<Expr> left = logicalAnd();
+
+    // while -> for left associativity (eg. 1 or 2 or 4)
+    while(match(OR)){
+        Token op = previous();
+        std::unique_ptr<Expr> right = logicalAnd();
+
+        left = std::make_unique<Logical>(std::move(left), std::move(op), std::move(right));
+    }
+    return left;
+}
+std::unique_ptr<Expr> Parser::logicalAnd(){
+    std::unique_ptr<Expr> left = equality();
+    while(match(AND)){
+        Token op = previous();
+        std::unique_ptr<Expr> right = equality();
+
+        left = std::make_unique<Logical>(std::move(left), std::move(op), std::move(right));
     }
     return left;
 }

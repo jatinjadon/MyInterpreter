@@ -150,9 +150,7 @@ LoxValue Interpreter::visitLogicalExpr(Logical* expr){
 		return true;
 	}
 
-	LoxValue rightvalue = evaluate(expr->right.get());
-	if(isTruthy(rightvalue))return true;
-	return false;
+	return isTruthy(evaluate(expr->right.get()));
 }
 bool Interpreter::isTruthy(const LoxValue& value) {
 	if (std::holds_alternative<std::nullptr_t>(value))return false;

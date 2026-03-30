@@ -1,6 +1,7 @@
 #pragma once
 #include "expr.h"
 #include "Token.h"
+#include "stmt.h"
 #include<vector>
 
 class ParseError : public std::runtime_error{
@@ -25,6 +26,7 @@ private:
     void synchronize();
 
     std::unique_ptr<Expr> expression();
+    std::unique_ptr<Expr> assignment();
     std::unique_ptr<Expr> equality();
     std::unique_ptr<Expr> comparison();
     std::unique_ptr<Expr> term();
@@ -32,7 +34,16 @@ private:
     std::unique_ptr<Expr> unary();
     std::unique_ptr<Expr> primary();
 
+    std::unique_ptr<Stmt> declaration();
+    std::unique_ptr<Stmt> statement();
+    std::vector<std::unique_ptr<Stmt>> block();
+    std::unique_ptr<Stmt> printStatement();
+    std::unique_ptr<Stmt> expressionStatement();
+    std::unique_ptr<Stmt> varStatement();
+    std::unique_ptr<Stmt> ifStatement();
+
 public: 
     Parser(std::vector<Token> tokens);
+    std::vector<std::unique_ptr<Stmt>> run();
     std::unique_ptr<Expr> parse();
 };

@@ -1,0 +1,13 @@
+var a = 5;
+print a;
+a = "hello";
+print a;
+
+{
+    var hello = 88;
+    {
+        var hello = 98;
+        print hello;
+    }
+    print hello;
+}

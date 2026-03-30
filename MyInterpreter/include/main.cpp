@@ -61,13 +61,31 @@ int main(int argc, char* argv[]) {
     }
     else if (command == "evaluate") {
         Parser parser(tokens);
-        std::unique_ptr<Expr> expr = parser.parse();
-        if (expr) {
-            Interpreter interpreter;
-            interpreter.interpret(expr.get());
+        try{
+            std::unique_ptr<Expr> expr = parser.parse();
+            if (expr) {
+                Interpreter interpreter;
+                interpreter.evaluate(expr.get());
+            }
+            else {
+                return_code = 65;
+            }
         }
-        else {
-            return_code = 65;
+        catch(const std::runtime_error& error){
+            std::cerr << "Runtime Error: " << error.what() << std::endl;
+        }
+        
+    }
+    else if(command == "run"){
+        Parser parser(tokens);
+        Interpreter interpreter;
+        try{
+            std::vector<std::unique_ptr<Stmt>> statements = parser.run();
+            interpreter.interpret(statements);
+        }
+        catch(const std::runtime_error& e){
+            std::cerr << "Runtime Error: " << e.what() << std::endl;
+            exit(70);
         }
     }
     else {

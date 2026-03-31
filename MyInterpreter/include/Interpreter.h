@@ -22,13 +22,14 @@ private:
 	LoxValue visitVariableExpr(Variable* expr) override;
 	LoxValue visitAssignExpr(Assign* expr) override;
 	LoxValue visitLogicalExpr(Logical* expr) override;
-	
+
 	void visitPrintStmt(PrintStmt* stmt) override;
 	void visitExpressionStmt(ExpressionStmt* stmt) override;
 	void visitVarStmt(VarStmt* stmt) override;
 	void visitBlockStmt(BlockStmt* stmt) override;
 	void visitIfStmt(IfStmt* stmt) override;
-
+	void visitWhileStmt(WhileStmt* stmt) override;
+	
 	bool isTruthy(const LoxValue &value);
 	bool isEqual(const LoxValue& a, const LoxValue& b);
 	std::string stringify(const LoxValue &value);

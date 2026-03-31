@@ -43,6 +43,8 @@ private:
     std::unique_ptr<Stmt> expressionStatement();
     std::unique_ptr<Stmt> varStatement();
     std::unique_ptr<Stmt> ifStatement();
+    std::unique_ptr<Stmt> whileStatement();
+    std::unique_ptr<Stmt> forStatement();
 
 public: 
     Parser(std::vector<Token> tokens);

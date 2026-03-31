@@ -7,6 +7,7 @@ struct PrintStmt;
 struct VarStmt;
 struct BlockStmt;
 struct IfStmt;
+struct WhileStmt;
 
 struct StmtVisitor{
     virtual void visitExpressionStmt(ExpressionStmt* stmt) = 0;
@@ -14,6 +15,7 @@ struct StmtVisitor{
     virtual void visitVarStmt(VarStmt* stmt) = 0;
     virtual void visitBlockStmt(BlockStmt* stmt) = 0;
     virtual void visitIfStmt(IfStmt* stmt) = 0;
+    virtual void visitWhileStmt(WhileStmt* stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -77,5 +79,17 @@ struct IfStmt : Stmt{
 
     void accept(StmtVisitor* visitor) override{
         visitor->visitIfStmt(this);
+    }
+};
+
+struct WhileStmt : Stmt{
+    std::unique_ptr<Expr> condition;
+    std::unique_ptr<Stmt> body;
+
+    WhileStmt(std::unique_ptr<Expr> condition, std::unique_ptr<Stmt> body) :
+        condition(std::move(condition)), body(std::move(body)) {}
+
+    void accept(StmtVisitor* visitor) override{
+        visitor->visitWhileStmt(this);
     }
 };

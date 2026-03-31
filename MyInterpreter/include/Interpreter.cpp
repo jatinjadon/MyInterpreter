@@ -64,6 +64,11 @@ void Interpreter::visitIfStmt(IfStmt* stmt){
 		execute(stmt->elseBranch.get());
 	}
 }
+void Interpreter::visitWhileStmt(WhileStmt* stmt){
+	while(isTruthy(evaluate(stmt->condition.get()))){
+		execute(stmt->body.get());
+	}
+}
 LoxValue Interpreter::visitBinaryExpr(Binary* expr) {
 	LoxValue left = evaluate(expr->left.get());
 	Token op = expr->op;

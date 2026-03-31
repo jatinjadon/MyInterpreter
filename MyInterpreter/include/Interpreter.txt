@@ -13,3 +13,7 @@ print a;
 }
 
 print false or 2 and 3;
+
+for (var a = 4; a < 10; a = a+1){
+    print a;
+}

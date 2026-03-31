@@ -85,7 +85,7 @@ std::unique_ptr<Expr> Parser::assignment(){
             Token name = v->name;
             return std::make_unique<Assign>(std::move(name), std::move(expr));
         }
-        error(equals, "User Tried to do Invalid assignment.");
+        throw error(equals, "User Tried to do Invalid assignment.");
     }
     return left;
 }

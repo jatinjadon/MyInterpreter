@@ -148,14 +148,14 @@ LoxValue Interpreter::visitLogicalExpr(Logical* expr){
 	LoxValue leftvalue = evaluate(expr->left.get());
 	if(!isTruthy(leftvalue)){
 		if(expr->op.lexeme == "and")
-		return false;
+		return leftvalue;
 	}
 	else{
 		if(expr->op.lexeme == "or")
-		return true;
+		return leftvalue;
 	}
 
-	return isTruthy(evaluate(expr->right.get()));
+	return evaluate(expr->right.get());
 }
 bool Interpreter::isTruthy(const LoxValue& value) {
 	if (std::holds_alternative<std::nullptr_t>(value))return false;

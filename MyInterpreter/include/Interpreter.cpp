@@ -1,6 +1,22 @@
 #include "Interpreter.h"
+#include "LoxFunction.h"
+#include<chrono>
 #include<sstream>
 
+class ClockCallable : public LoxCallable {
+public:
+  int arity() override { return 0; }
+  LoxValue call(Interpreter *interpreter,
+                const std::vector<LoxValue> &arguments) override {
+    auto now = std::chrono::system_clock::now().time_since_epoch();
+    return (double)std::chrono::duration_cast<std::chrono::seconds>(now)
+        .count();
+  }
+  std::string toString() { return "<native fn>"; }
+};
+Interpreter::Interpreter() {
+	globals->define("clock", std::make_shared<ClockCallable>());
+}
 void Interpreter::interpret(const std::vector<std::unique_ptr<Stmt>>& statements) {
 	try{
 		for(const auto& stmt : statements){
@@ -68,6 +84,10 @@ void Interpreter::visitWhileStmt(WhileStmt* stmt){
 	while(isTruthy(evaluate(stmt->condition.get()))){
 		execute(stmt->body.get());
 	}
+}
+void Interpreter::visitFunctionStmt(FunctionStmt* stmt){
+	std::shared_ptr<LoxFunction> function = std::make_shared<LoxFunction>(stmt, environment);
+	environment->define(stmt->name.lexeme, function);
 }
 LoxValue Interpreter::visitBinaryExpr(Binary* expr) {
 	LoxValue left = evaluate(expr->left.get());
@@ -157,6 +177,26 @@ LoxValue Interpreter::visitLogicalExpr(Logical* expr){
 
 	return evaluate(expr->right.get());
 }
+LoxValue Interpreter::visitCallExpr(Call* expr){
+	LoxValue callee = evaluate(expr->callee.get());
+	if(!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)){
+		throw std::runtime_error("Can only call functions and classes.");
+	}
+	std::vector<LoxValue> arguments;
+	for(const auto& arg : expr->arguments){
+		arguments.push_back(evaluate(arg.get()));
+	}
+
+	std::shared_ptr<LoxCallable> function = std::get<std::shared_ptr<LoxCallable>>(callee);
+
+	if (arguments.size() != function->arity()) {
+    throw std::runtime_error("Expected " + std::to_string(function->arity()) +
+                             " arguments but got " +
+                             std::to_string(arguments.size()) + ".");
+  	}
+
+	return function->call(this, arguments);
+}
 bool Interpreter::isTruthy(const LoxValue& value) {
 	if (std::holds_alternative<std::nullptr_t>(value))return false;
 	if (std::holds_alternative<bool>(value))return std::get<bool>(value);
@@ -188,6 +228,10 @@ std::string Interpreter::stringify(const LoxValue& value) {
         oss << std::get<double>(value);
         return oss.str();
 	}
-
+	if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
+		// Rip the pointer out of the variant and call the toString() method we
+		// wrote!
+		return std::get<std::shared_ptr<LoxCallable>>(value)->toString();
+	}
 	return "Unknown";
 }

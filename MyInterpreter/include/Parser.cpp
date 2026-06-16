@@ -214,12 +214,41 @@ std::unique_ptr<Expr> Parser::primary() {
 
     throw error(peek(), "Expect expression.");
 }
-std::unique_ptr<Stmt> Parser::declaration(){
-    if(match(VAR)){
+std::unique_ptr<Stmt> Parser::declaration() {
+    try {
+      // Look for the 'fun' keyword first!
+      if (match(FUN))
+        return function("function");
+
+      if (match(VAR))
         return varStatement();
+      return statement();
+    } catch (ParseError error) {
+      synchronize();
+      return nullptr;
     }
-    return statement();
 }
+std::unique_ptr<Stmt> Parser::function(std::string kind){
+    Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+
+    consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+    std::vector<Token> parameters;
+    if (!check(RIGHT_PAREN)) {
+        do {
+            if (parameters.size() >= 255) {
+                throw error(peek(), "Can't have more than 255 parameters.");
+            }
+
+            parameters.push_back(consume(IDENTIFIER, "Expect parameter name."));
+        } while (match(COMMA));
+    }
+    consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+    consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+    std::vector<std::unique_ptr<Stmt>> body = block();
+    return std::make_unique<FunctionStmt>(std::move(name), std::move(parameters), std::move(body));
+}
+
 std::unique_ptr<Stmt> Parser::varStatement(){
     Token name = consume(IDENTIFIER, "Expect variable name.");
 

@@ -8,11 +8,14 @@ class Interpreter : public ExprVisitor, public StmtVisitor {
 public:
 	void interpret(const std::vector<std::unique_ptr<Stmt>>& statements);
 	LoxValue evaluate(Expr* expr);
-private:
-	std::shared_ptr<Environment> environment = std::make_shared<Environment>();
-
+	Interpreter();
 	void executeBlock(const std::vector<std::unique_ptr<Stmt>> &statements,
                     std::shared_ptr<Environment> innerEnvironment);
+private:
+	std::shared_ptr<Environment> globals = std::make_shared<Environment>();
+	std::shared_ptr<Environment> environment = globals;
+	
+	
 	void execute(Stmt* stmt);
 
 	LoxValue visitBinaryExpr(Binary* expr) override;
@@ -22,6 +25,7 @@ private:
 	LoxValue visitVariableExpr(Variable* expr) override;
 	LoxValue visitAssignExpr(Assign* expr) override;
 	LoxValue visitLogicalExpr(Logical* expr) override;
+	LoxValue visitCallExpr(Call* expr) override;
 
 	void visitPrintStmt(PrintStmt* stmt) override;
 	void visitExpressionStmt(ExpressionStmt* stmt) override;
@@ -29,7 +33,8 @@ private:
 	void visitBlockStmt(BlockStmt* stmt) override;
 	void visitIfStmt(IfStmt* stmt) override;
 	void visitWhileStmt(WhileStmt* stmt) override;
-	
+	void visitFunctionStmt(FunctionStmt* stmt) override;
+
 	bool isTruthy(const LoxValue &value);
 	bool isEqual(const LoxValue& a, const LoxValue& b);
 	std::string stringify(const LoxValue &value);

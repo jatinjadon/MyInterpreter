@@ -10,6 +10,7 @@
 
 struct Binary; struct Unary; struct Literal; struct Grouping;
 struct Expr; struct Variable; struct Assign; struct Logical;
+struct Call; 
 
 struct ExprVisitor {
 	virtual LoxValue visitBinaryExpr(Binary* expr) = 0;
@@ -19,6 +20,7 @@ struct ExprVisitor {
 	virtual LoxValue visitVariableExpr(Variable* expr) = 0;
 	virtual LoxValue visitAssignExpr(Assign* expr) = 0;
 	virtual LoxValue visitLogicalExpr(Logical* expr) = 0;
+	virtual LoxValue visitCallExpr(Call* expr) = 0;
 	virtual ~ExprVisitor() = default;
 };
 struct Expr {
@@ -135,5 +137,30 @@ struct Logical : Expr{
 	}
 	std::string print() const override{
 		return "(" + op.lexeme + " " + left->print() + " " + right->print() + ")";
+	}
+};
+
+struct Call : Expr{
+	std::unique_ptr<Expr> callee; // can be any kind of expr parser supports,
+	// it should be function or class will be handled by interpreter
+	Token paren;
+	std::vector<std::unique_ptr<Expr>> arguments;
+
+	Call(std::unique_ptr<Expr> callee, Token paren, std::vector<std::unique_ptr<Expr>> arguments) : 
+		callee(std::move(callee)), paren(std::move(paren)), arguments(std::move(arguments)) {}
+	LoxValue accept(ExprVisitor* visitor) override{
+		return visitor->visitCallExpr(this);
+	}
+	std::string print() const override{
+		std::string argstr;
+
+		for(const auto& arg : arguments){
+			argstr += arg->print() + " ";
+		}
+		
+		if(!argstr.empty())
+		argstr.pop_back();
+
+		return "(call " + callee->print() + " " + argstr + ')';
 	}
 };

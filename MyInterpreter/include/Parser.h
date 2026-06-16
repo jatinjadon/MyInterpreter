@@ -37,6 +37,7 @@ private:
     std::unique_ptr<Expr> primary();
 
     std::unique_ptr<Stmt> declaration();
+    std::unique_ptr<Stmt> function(std::string kind);
     std::unique_ptr<Stmt> statement();
     std::vector<std::unique_ptr<Stmt>> block();
     std::unique_ptr<Stmt> printStatement();

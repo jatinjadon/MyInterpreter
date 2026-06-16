@@ -100,6 +100,19 @@ void Scanner::scanToken() {
                 // A comment goes until the end of the line.
                 while (peek() != '\n' && !isAtEnd()) advance();
             }
+			else if (match('*')) {
+				while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) {
+					if (peek() == '\n')line++;
+					advance();
+				}
+				if (isAtEnd()) {
+					std::cerr << "[line " << line << "] Error: Unterminated block comment." << std::endl;
+					return_code = 65;
+					return;
+				}
+				advance(); // consume '*'
+				advance(); // consume '/'
+			}
             else {
                 addToken(SLASH);
             }

@@ -68,9 +68,9 @@ struct Token {
         case IF: typeStr = "IF"; break;
         case NIL: typeStr = "NIL"; break;
         case OR: typeStr = "OR"; break;
-        case PRINT: typeStr = "PRINT"; break;
         case RETURN: typeStr = "RETURN"; break;
         case SUPER: typeStr = "SUPER"; break;
+        case PRINT: typeStr = "PRINT"; break;
         case THIS: typeStr = "THIS"; break;
         case TRUE: typeStr = "TRUE"; break;
         case VAR: typeStr = "VAR"; break;

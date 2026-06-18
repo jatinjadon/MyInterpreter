@@ -26,7 +26,7 @@ char Scanner::advance() {
 
 void Scanner::addToken(TokenType type, std::string literal) {
     std::string lexeme = source.substr(start, current - start);
-    tokens.push_back({ type, lexeme, literal, line });
+    tokens.emplace_back(type, lexeme, literal, line);
 }
 
 void Scanner::stringLiteral() {
@@ -114,7 +114,7 @@ void Scanner::scanToken() {
 				advance(); // consume '/'
 			}
             else {
-                addToken(SLASH);
+                addToken(TokenType::SLASH);
             }
             break;
 

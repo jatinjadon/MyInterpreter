@@ -9,6 +9,7 @@ struct BlockStmt;
 struct IfStmt;
 struct WhileStmt;
 struct FunctionStmt;
+struct ReturnStmt;
 
 struct StmtVisitor{
     virtual void visitExpressionStmt(ExpressionStmt* stmt) = 0;
@@ -18,6 +19,7 @@ struct StmtVisitor{
     virtual void visitIfStmt(IfStmt* stmt) = 0;
     virtual void visitWhileStmt(WhileStmt* stmt) = 0;
     virtual void visitFunctionStmt(FunctionStmt* stmt) = 0;
+	virtual void visitReturnStmt(ReturnStmt* stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -107,4 +109,16 @@ struct FunctionStmt : Stmt{
     void accept(StmtVisitor* visitor) override{
         visitor->visitFunctionStmt(this);
     }
+};
+
+struct ReturnStmt : Stmt {
+	Token keyword;
+	std::unique_ptr<Expr> value;
+
+	ReturnStmt(Token keyword, std::unique_ptr<Expr> value) :
+		keyword(std::move(keyword)), value(std::move(value)) {
+	}
+	void accept(StmtVisitor* visitor) override {
+		visitor->visitReturnStmt(this);
+	}
 };

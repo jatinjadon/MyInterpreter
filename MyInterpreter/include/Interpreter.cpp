@@ -12,10 +12,22 @@ public:
     return (double)std::chrono::duration_cast<std::chrono::seconds>(now)
         .count();
   }
-  std::string toString() { return "<native fn>"; }
+  std::string toString() { return "<native fn clock>"; }
+};
+class PrintCallable : public LoxCallable {
+public:
+	int arity() override { return 1; }
+	LoxValue call(Interpreter* interpreter, const std::vector<LoxValue>& arguments) override {
+		std::cout << interpreter->stringify(arguments[0]) << std::endl;
+		return nullptr;
+	}
+	std::string toString() override {
+		return "<native fn print>";
+	}
 };
 Interpreter::Interpreter() {
 	globals->define("clock", std::make_shared<ClockCallable>());
+	globals->define("println", std::make_shared<PrintCallable>());
 }
 void Interpreter::interpret(const std::vector<std::unique_ptr<Stmt>>& statements) {
 	try{
@@ -56,8 +68,8 @@ void Interpreter::visitExpressionStmt(ExpressionStmt* stmt){
 	evaluate(stmt->expression.get());
 }
 void Interpreter::visitPrintStmt(PrintStmt* stmt){
-	LoxValue expr = evaluate(stmt->expression.get());
-	std::cout << stringify(expr) << std::endl;
+	LoxValue value = evaluate(stmt->expression.get());
+	std::cout << stringify(value) << std::endl;
 }
 void Interpreter::visitVarStmt(VarStmt* stmt){
 	LoxValue value = nullptr;
@@ -88,6 +100,13 @@ void Interpreter::visitWhileStmt(WhileStmt* stmt){
 void Interpreter::visitFunctionStmt(FunctionStmt* stmt){
 	std::shared_ptr<LoxFunction> function = std::make_shared<LoxFunction>(stmt, environment);
 	environment->define(stmt->name.lexeme, function);
+}
+void Interpreter::visitReturnStmt(ReturnStmt* stmt) {
+	LoxValue value = nullptr;
+	if (stmt->value.get() != nullptr) {
+		value = evaluate(stmt->value.get());
+	}
+	throw ReturnException(value);
 }
 LoxValue Interpreter::visitBinaryExpr(Binary* expr) {
 	LoxValue left = evaluate(expr->left.get());
@@ -179,6 +198,7 @@ LoxValue Interpreter::visitLogicalExpr(Logical* expr){
 }
 LoxValue Interpreter::visitCallExpr(Call* expr){
 	LoxValue callee = evaluate(expr->callee.get());
+
 	if(!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)){
 		throw std::runtime_error("Can only call functions and classes.");
 	}

@@ -37,17 +37,17 @@ Token Parser::consume(TokenType type, const std::string message) {
 ParseError Parser::error(Token token, const std::string& message) {
     std::string errstr;
     if(token.type == _EOF)
-        errstr = "[line " + std::to_string(line) + "] Error at end: " + message;
+        errstr = "[line " + std::to_string(token.line) + "] Error at end: " + message;
     else
-        errstr = "[line " + std::to_string(line) + "] Error at '" + token.lexeme + "': " + message;
+        errstr = "[line " + std::to_string(token.line) + "] Error at '" + token.lexeme + "': " + message;
     
+	hadError = true;
+    std::cerr << errstr << std::endl;
     return ParseError(errstr);
 }
 
 // for error recovery
 void Parser::synchronize() {
-    advance(); // Consume the token that triggered the panic
-
     while (!isAtEnd()) {
         if (previous().type == SEMICOLON) return;
 
@@ -60,6 +60,7 @@ void Parser::synchronize() {
         case WHILE:
         case PRINT:
         case RETURN:
+        case LEFT_BRACE:
             return;
         default:
             break;
@@ -184,7 +185,17 @@ std::unique_ptr<Expr> Parser::unary() {
         }
         return std::make_unique<Unary>(op, move(right));
     }
-    return primary();
+    return call();
+}
+std::unique_ptr<Expr> Parser::call() {
+	std::unique_ptr<Expr> expr = primary();
+	while (true) {
+		if (match(LEFT_PAREN)) {
+			expr = finishCall(move(expr));
+		}
+		else break;
+	}
+	return expr;
 }
 
 std::unique_ptr<Expr> Parser::primary() {
@@ -214,6 +225,20 @@ std::unique_ptr<Expr> Parser::primary() {
 
     throw error(peek(), "Expect expression.");
 }
+std::unique_ptr<Expr> Parser::finishCall(std::unique_ptr<Expr> callee) {
+	std::vector<std::unique_ptr<Expr>> arguments;
+	if (!check(RIGHT_PAREN)) {
+		do {
+			if (arguments.size() >= 255) {
+				throw error(peek(), "Can't have more than 255 arguments.");
+			}
+			arguments.push_back(expression());
+		} while (match(COMMA));
+	}
+	Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
+	return std::make_unique<Call>(std::move(callee), std::move(paren), std::move(arguments));
+}
+
 std::unique_ptr<Stmt> Parser::declaration() {
     try {
       // Look for the 'fun' keyword first!
@@ -277,6 +302,9 @@ std::unique_ptr<Stmt> Parser::statement(){
     if(match(FOR)){
         return forStatement();
     }
+	if (match(RETURN)) {
+		return returnStatement();
+	}
     return expressionStatement();
 }
 std::unique_ptr<Stmt> Parser::whileStatement(){
@@ -390,6 +418,16 @@ std::vector<std::unique_ptr<Stmt>> Parser::run(){
         statements.push_back(declaration());    
     }
     return statements;
+}
+std::unique_ptr<Stmt> Parser::returnStatement() {
+	Token keyword = previous();
+	std::unique_ptr<Expr> value = nullptr;
+
+	if (!check(SEMICOLON)) {
+		value = expression();
+	}
+	consume(SEMICOLON, "Expect ';' after return value.");
+	return std::make_unique<ReturnStmt>(std::move(keyword), std::move(value));
 }
 
 Parser::Parser(std::vector<Token> tokens) : tokens(std::move(tokens)) {}

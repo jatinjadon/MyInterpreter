@@ -13,7 +13,6 @@ class Parser{
 private:
 	std::vector<Token> tokens; 
 	int current = 0;
-	int line = 1;
 
     Token peek();
     Token previous();
@@ -34,7 +33,9 @@ private:
     std::unique_ptr<Expr> term();
     std::unique_ptr<Expr> factor();
     std::unique_ptr<Expr> unary();
+	std::unique_ptr<Expr> call();
     std::unique_ptr<Expr> primary();
+	std::unique_ptr<Expr> finishCall(std::unique_ptr<Expr> callee);
 
     std::unique_ptr<Stmt> declaration();
     std::unique_ptr<Stmt> function(std::string kind);
@@ -46,8 +47,10 @@ private:
     std::unique_ptr<Stmt> ifStatement();
     std::unique_ptr<Stmt> whileStatement();
     std::unique_ptr<Stmt> forStatement();
+	std::unique_ptr<Stmt> returnStatement();
 
 public: 
+	bool hadError = false;
     Parser(std::vector<Token> tokens);
     std::vector<std::unique_ptr<Stmt>> run();
     std::unique_ptr<Expr> parse();

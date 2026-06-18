@@ -11,7 +11,6 @@ LoxValue Environment::get(const Token& name) const{
     if(enclosing != nullptr){
         return enclosing->get(name);
     }
-    std::cerr << "here" << std::endl;
     throw std::runtime_error("Undefined variable: '" + name.lexeme + "'.");
 }
 void Environment::assign(const Token &name, LoxValue& value){

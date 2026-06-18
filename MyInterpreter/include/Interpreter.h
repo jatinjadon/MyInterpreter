@@ -2,6 +2,7 @@
 #include "expr.h"
 #include "stmt.h"
 #include "Environment.h"
+#include "ReturnException.h"
 #include<stdexcept>
 
 class Interpreter : public ExprVisitor, public StmtVisitor {
@@ -11,6 +12,7 @@ public:
 	Interpreter();
 	void executeBlock(const std::vector<std::unique_ptr<Stmt>> &statements,
                     std::shared_ptr<Environment> innerEnvironment);
+	std::string stringify(const LoxValue& value);
 private:
 	std::shared_ptr<Environment> globals = std::make_shared<Environment>();
 	std::shared_ptr<Environment> environment = globals;
@@ -34,10 +36,10 @@ private:
 	void visitIfStmt(IfStmt* stmt) override;
 	void visitWhileStmt(WhileStmt* stmt) override;
 	void visitFunctionStmt(FunctionStmt* stmt) override;
+	void visitReturnStmt(ReturnStmt* stmt) override;
 
 	bool isTruthy(const LoxValue &value);
 	bool isEqual(const LoxValue& a, const LoxValue& b);
-	std::string stringify(const LoxValue &value);
 	void checkNumberOperand(const LoxValue &operand);
 	void checkNumberOperands(const LoxValue &left, const LoxValue &right);
 };

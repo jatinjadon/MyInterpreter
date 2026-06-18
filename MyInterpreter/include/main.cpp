@@ -63,6 +63,10 @@ int main(int argc, char* argv[]) {
         Parser parser(tokens);
         try{
             std::unique_ptr<Expr> expr = parser.parse();
+			if (parser.hadError) {
+				return_code = 65;
+                exit(return_code);
+			}
             if (expr) {
                 Interpreter interpreter;
                 interpreter.evaluate(expr.get());
@@ -81,6 +85,10 @@ int main(int argc, char* argv[]) {
         Interpreter interpreter;
         try{
             std::vector<std::unique_ptr<Stmt>> statements = parser.run();
+            if (parser.hadError) {
+                return_code = 65;
+                exit(return_code);
+            }
             interpreter.interpret(statements);
         }
         catch(const std::runtime_error& e){

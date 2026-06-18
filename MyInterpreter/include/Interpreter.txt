@@ -1,21 +1,45 @@
 var a = 5;
 print a;
 a = "hello";
-print a;
-
+print(a);
+println("I am printing this using a native fn println");
 {
     var hello = 88;
     {
         var hello = 98;
-        print hello;
+        print(hello);
     }
-    print hello;
+    print(hello);
+
 }
 
-print false or 2 and 3;
+print (false or 2 and 3);
 
 for (var a = 4; a < 10; a = a+1){
-    print a;
+    print (a);
 }
 
-print clock() + 2;
+print (clock() + 2);
+
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    print i;
+  }
+
+  return count;
+}
+
+var counter = makeCounter(); 
+counter();
+counter();
+
+fun fib(n){
+    if(n == 0 or n == 1)return n;
+    return fib(n-1) + fib(n-2);
+}
+
+print (fib(10));
+
+

@@ -5,7 +5,6 @@
 #include<cstring>
 #include<iostream>
 #include<sstream>
-#include<fstream>
 #include<vector>
 
 struct Binary; struct Unary; struct Literal; struct Grouping;
@@ -152,15 +151,13 @@ struct Call : Expr{
 		return visitor->visitCallExpr(this);
 	}
 	std::string print() const override{
-		std::string argstr;
-
+		std::ostringstream oss;
+		oss << "(call " << callee->print();
 		for(const auto& arg : arguments){
-			argstr += arg->print() + " ";
+			oss << " " << arg->print();
 		}
 		
-		if(!argstr.empty())
-		argstr.pop_back();
-
-		return "(call " + callee->print() + " " + argstr + ')';
+		oss << ")";
+		return oss.str();
 	}
 };

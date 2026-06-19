@@ -7,6 +7,7 @@
 #include <vector>
 #include "Parser.h"
 #include "Interpreter.h"
+#include "Resolver.h"
 
 std::string read_file_contents(const std::string& filename) {
     std::ifstream file(filename);
@@ -85,7 +86,14 @@ int main(int argc, char* argv[]) {
         Interpreter interpreter;
         try{
             std::vector<std::unique_ptr<Stmt>> statements = parser.run();
+
             if (parser.hadError) {
+                return_code = 65;
+                exit(return_code);
+            }
+            Resolver resolver(&interpreter);
+            resolver.resolve(statements);
+            if(resolver.hadError){
                 return_code = 65;
                 exit(return_code);
             }

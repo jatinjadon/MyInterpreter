@@ -175,12 +175,19 @@ LoxValue Interpreter::visitLiteralExpr(Literal* expr) {
 	return expr->value;
 }
 LoxValue Interpreter::visitVariableExpr(Variable* expr){
-	LoxValue value = environment->get(expr->name);
+	LoxValue value = getVariable(expr->name, expr);
 	return value;
 }
 LoxValue Interpreter::visitAssignExpr(Assign* expr){
 	LoxValue value = evaluate(expr->expr.get());
-	environment->assign(expr->name, value);
+	auto it = locals.find(expr);
+	if(it != locals.end()){
+		int distance = it->second;
+		environment->assignAt(distance, expr->name, value);
+	}
+	else{
+		globals->assign(expr->name, value);
+	}
 	return value;
 }
 LoxValue Interpreter::visitLogicalExpr(Logical* expr){
@@ -254,4 +261,17 @@ std::string Interpreter::stringify(const LoxValue& value) {
 		return std::get<std::shared_ptr<LoxCallable>>(value)->toString();
 	}
 	return "Unknown";
+}
+void Interpreter::resolve(Expr* expr, int depth) {
+	locals[expr] = depth;
+}
+LoxValue Interpreter::getVariable(const Token& name, Expr* expr){
+	auto it = locals.find(expr);
+	if(it != locals.end()){
+		int distance = it->second;
+		return environment->getAt(distance, name.lexeme);
+	}
+	else{
+		return globals->get(name);
+	}
 }

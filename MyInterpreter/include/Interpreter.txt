@@ -42,4 +42,25 @@ fun fib(n){
 
 print (fib(10));
 
+a = "global";
+{
+  fun showA() {
+    print a;
+  }
 
+  showA();
+  var a = "block";
+  showA();
+}
+
+fun isEven(n) {
+    if (n == 0) return true;
+    return isOdd(n - 1); // ERROR: What is 'isOdd'?
+}
+
+fun isOdd(n) {
+    if (n == 0) return false;
+    return isEven(n - 1);
+}
+
+print isEven(5);

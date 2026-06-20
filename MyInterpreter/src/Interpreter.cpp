@@ -65,7 +65,10 @@ LoxValue Interpreter::evaluate(Expr* expr) {
 	return expr->accept(this);
 }
 void Interpreter::visitExpressionStmt(ExpressionStmt* stmt){
-	evaluate(stmt->expression.get());
+	LoxValue value = evaluate(stmt->expression.get());
+	if(isREPLmode){
+		std::cout << stringify(value) << std::endl;
+	}
 }
 void Interpreter::visitPrintStmt(PrintStmt* stmt){
 	LoxValue value = evaluate(stmt->expression.get());

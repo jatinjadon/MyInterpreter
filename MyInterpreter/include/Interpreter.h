@@ -8,6 +8,7 @@
 
 class Interpreter : public ExprVisitor, public StmtVisitor {
 public:
+	bool isREPLmode = false;
 	void interpret(const std::vector<std::unique_ptr<Stmt>>& statements);
 	LoxValue evaluate(Expr* expr);
 	Interpreter();
